@@ -70,3 +70,4 @@ actions:
 - bot.ActionSearch
 - bot.ActionAnswer
 - bot.ActionAlternative
+- bot.ActionRestart

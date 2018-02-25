@@ -2,3 +2,4 @@ channels.py
 /data/
 *.log
 /models/
+/__pycache__/

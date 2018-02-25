@@ -18,14 +18,35 @@ from rasa_core.policies.memoization import MemoizationPolicy
 from rasa_core.policies.keras_policy import KerasPolicy
 from rasa_core.channels import HttpInputChannel
 
+from rasa_core.domain import TemplateDomain
+from rasa_core.tracker_store import InMemoryTrackerStore
+
 logger = logging.getLogger(__name__)
 
 from channels import *
 from retrieve import *
+from policy import *
 from bs4 import BeautifulSoup
 from fuzzywuzzy import fuzz, process
 
 topic_lookup = {'acc': 18, 'neighborhood life': 10, 'relationships and break-ups': 24}
+
+class ActionRestart(Action):
+    """Resets the tracker to its initial state.
+
+    Utters the restart template if available."""
+
+    def name(self):
+        return 'custom_action_restart'
+
+    def run(self, dispatcher, tracker, domain):
+        from rasa_core.events import Restarted
+
+        # only utter the template if it is available
+        if domain.random_template_for("utter_restart") is not None:
+            dispatcher.utter_template("utter_restart")
+        return [Restarted()]
+
 
 class ActionAlternative(Action):
     def name(self):
@@ -109,12 +130,12 @@ def train_nlu():
 
 def run(serve_forever=True):
     interpreter = RasaNLUInterpreter("models/nlu/default/current")
-    agent = Agent.load("models/dialogue", interpreter=interpreter)
+    #agent = Agent.load("models/dialogue", interpreter=interpreter)
+    default_domain = TemplateDomain.load("domain.yml")
+    agent = Agent(default_domain, policies=[SimplePolicy()], interpreter=interpreter)
     if serve_forever:
         #agent.handle_channel(ConsoleInputChannel())
-        logger.info("foo")
-        agent.handle_channel(HttpInputChannel(3000, "/app", nzlaw_bot))
-        logger.info("bar")
+        agent.handle_channel(HttpInputChannel(3000, "/app", input_channel_telegram))
 
     return agent
 
@@ -123,17 +144,21 @@ def run_online(input_channel,
                domain_file="domain.yml",
                training_data_file='data/stories.md'):
     interpreter = RasaNLUInterpreter("models/nlu/default/current")
+
     agent = Agent(domain_file,
                   policies=[MemoizationPolicy(), KerasPolicy()],
                   interpreter=interpreter)
-
+    
     agent.train_online(training_data_file,
                        input_channel=input_channel,
                        max_history=2,
                        batch_size=50,
                        epochs=200,
                        max_training_samples=300)
-
+    """
+    default_domain = TemplateDomain.load("domain.yml")
+    agent = Agent(default_domain, policies=[SimplePolicy()], interpreter=interpreter, tracker_store=InMemoryTrackerStore(default_domain))
+    """
     return agent
 
 

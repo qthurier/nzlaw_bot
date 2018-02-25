@@ -1,0 +1,72 @@
+slots:
+  topic:
+    type: categorical
+    values: 
+      - acc
+      - neighborhood life
+      - relationships and break-ups
+  confidence:
+    type: categorical
+    values: 
+      - high
+      - low
+  keyword:
+    type: unfeaturized
+  suggestion:
+    type: unfeaturized
+  best_guess_question_list:
+    type: unfeaturized
+  best_guess_answer_list:
+    type: unfeaturized
+
+entities:
+- topic
+- keyword
+- suggestion
+
+intents:
+ - greet
+ - affirm
+ - deny
+ - accept_topic
+ - accept_question
+ - ask
+ - thankyou
+ - start
+ - goodbye
+
+templates:
+  utter_greet:
+    - "hey there!"
+  utter_goodbye:
+    - "bye-bye"
+  utter_how_can_i_help:
+    - "how can I help?"
+  utter_default:
+    - "default message"
+  utter_invite_to_ask_question:
+    - "what's your question regarding {topic}?"
+  utter_ask_if_helpful:
+    - "does that help?"
+  utter_suggest_topic:
+    - text: "I'm still a bit dumb, here are the topics I'm only aware of, please pick-up one:"
+      buttons:
+        - title: "acc"
+          payload: '/accept_topic{"topic": "acc"}'
+        - title: "neighborhood life"
+          payload: '/accept_topic{"topic": "neighborhood life"}'
+        - title: "relationships and break-ups"
+          payload: '/accept_topic{"topic": "relationships and break-ups"}'
+
+
+actions:
+- utter_greet
+- utter_goodbye
+- utter_how_can_i_help
+- utter_default
+- utter_invite_to_ask_question
+- utter_suggest_topic
+- utter_ask_if_helpful
+- bot.ActionSearch
+- bot.ActionAnswer
+- bot.ActionAlternative
